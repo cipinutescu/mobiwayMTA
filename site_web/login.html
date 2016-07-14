@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>
+		Traffic collector login page
+	</title>
+	<meta charset="UTF-8">
+	<script type="text/javascript" src="js/jquery-2.2.3.min.js"></script>
+	<script type="text/javascript" src="js/bootbox.min.js"></script>
+	<script type="text/javascript" src="bootstrap-3.3.6-dist/js/bootstrap.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="bootstrap-3.3.6-dist/css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="css/login.css">
+
+</head>
+<body>
+	<div id="fb-root"></div>
+<script>
+
+
+(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_GB/sdk.js#xfbml=1&version=v2.6&appId=925790694200024";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));
+
+function checkLoginState() {
+    FB.getLoginStatus(function(response) {
+      statusChangeCallback(response);
+    });
+  }
+function statusChangeCallback(response) {
+    console.log('statusChangeCallback');
+    console.log(response);
+    // The response object is returned with a status field that lets the
+    // app know the current login status of the person.
+    // Full docs on the response object can be found in the documentation
+    // for FB.getLoginStatus().
+    if (response.status === 'connected') {
+      // Logged into your app and Facebook.
+      console.log("Te-ai logat!");
+      
+
+      $.ajax({url: "http://localhost:8080/facebookLogin?uuid=" +response.authResponse.userID,
+  		type: 'POST', 
+  		headers: {
+  			'Access-Control-Allow-Origin':'*'
+  		},
+  		contentType:'application/json',
+  		success: function(result){
+        	if(result != "Nok"){
+        		token = result.substring(0,result.indexOf(":"));
+        		 username= result.substring(result.indexOf(":")+1,result.length);
+        		console.log("Te-ai logat cu " + result);
+        		location.replace("mainpage.html?username=" + username + "&token="+token);
+        	}
+        	else
+        		bootbox.alert("Nume de utilizator sau parola gresite!", function() {
+ 					 //Example.show("Nume de utilizator sau parola gresite!");
+				});
+    	},
+    	error: function(xhr,status,error){
+    		console.log(status);
+    		console.log(xhr);
+    		console.log(error);
+    	}
+    });
+
+
+    } else if (response.status === 'not_authorized') {
+      console.log("Nu te-ai logat!");
+    }
+  }
+
+  function loginfunction(){
+  	$.ajax({url: "http://localhost:8080/login?username=" + $('#user_textbox').val() + "&password="+$('#user_password').val(),
+  		type: 'POST', 
+  		headers: {
+  			'Access-Control-Allow-Origin':'*'
+  		},
+  		contentType:'application/json',
+  		success: function(result){
+        	if(result != "Nok"){
+        		console.log("Te-ai logat cu " + $('#user_textbox').val());
+        		location.replace("mainpage.html?username=" + $('#user_textbox').val() + "&token="+result);
+        	}
+        	else
+        		bootbox.alert("Nume de utilizator sau parola gresite!", function() {
+ 					 //Example.show("Nume de utilizator sau parola gresite!");
+				});
+    	},
+    	error: function(xhr,status,error){
+    		console.log(status);
+    		console.log(xhr);
+    		console.log(error);
+        bootbox.alert("Eroare de connectare la server!", function() {
+           //Example.show("Nume de utilizator sau parola gresite!");
+        });
+    	}
+    });
+  }
+
+
+</script>
+	<div class="bodyContainer">
+		<br><br><br><br><br><br>
+		<div class="centerImg"><br><br>
+			<img src="resources/semaphore.png" width="100px" height="100px">
+		</div>
+		<div class="centerTitle">
+			<div class="loginTitle">
+				<h1>Mobiway Traffic Analitics</h1>
+			</div>
+			<div class="input-group">
+  				<span class="input-group-addon" id="basic-addon1">@</span>
+ 				 <input id="user_textbox" type="text" class="form-control" placeholder="Username" aria-describedby="basic-addon1">
+  			</div>
+  			<div class="input-group">
+  				<span class="input-group-addon" id="basic-addon1">p*</span>
+  				<input type="password" class="form-control" placeholder="Password" aria-describedby="basic-addon1" id="user_password">
+			</div><br>
+			<div class="loginButton"><button type="button" id="login" class="btn btn-primary btn-block" onclick="loginfunction();">Login!</button><br>
+			<div class="fb-login-button" data-max-rows="1" data-size="large" data-show-faces="false" data-auto-logout-link="true" onlogin="checkLoginState();">Log in with Facebook!</div></div>
+		</div>
+		
+		
+	 	
+	</div>
+	<script type="text/javascript">
+		setTimeout(checkLoginState, 3000);
+    var x = $('#login');
+    x.autofocus = true;
+	</script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+body{
+	background-image: url('../resources/loginBackground.gif');
+	background-size: 1300px 600px;
+}
+.bodyContainer{
+	width: 600px;
+  	margin: 0 auto;
+  	overflow: hidden;
+}
+.centerTitle{
+	font-family: "Times New Roman", Times, serif;
+	width: 500px;
+  	margin: 0 auto;
+  	color:white;
+  	align-content: center;
+  	float: left;
+}
+.centerImg{
+	width: 100px;
+	float: left;
+}
+.loginButton{
+	margin: auto;
+    width: 40%;
+}
+.loginTitle{
+	margin: auto;
+    width: 80%;
+}

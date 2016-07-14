@@ -1,0 +1,1169 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Pagina principala</title>
+	<meta charset="utf-8" />
+<script type="text/javascript" src="js/jquery-2.2.3.min.js"></script>
+<script type="text/javascript" src="js/bootbox.min.js"></script>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<script type="text/javascript" src="bootstrap.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="bootstrap-3.3.6-dist/css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="css/normalize.css" />
+	<link rel="stylesheet" type="text/css" href="css/demo.css" />
+	<script type="text/javascript" src="js/jquery-2.2.3.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="css/component.css" />
+	
+	<script src="js/modernizr.custom.js"></script>
+	<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.5/leaflet.css" />
+	<link rel="stylesheet" href="leaflet-routing-machine.css" />
+	<script src="http://cdn.leafletjs.com/leaflet-0.7.5/leaflet.js"></script>
+	<script src="leaflet-routing-machine.js"></script>
+	<script src="Control.Geocoder.js"></script>
+</head>
+<body>
+	
+	<script src="http://canvasjs.com/assets/script/canvasjs.min.js"></script>
+	
+	<div class="container">
+			<ul id="gn-menu" class="gn-menu-main">
+				<li class="gn-trigger">
+					<a class="gn-icon gn-icon-menu"><span>Menu</span></a>
+					<nav class="gn-menu-wrapper">
+						<div class="gn-scroller">
+							<ul class="gn-menu">
+								<li>
+									<a class="gn-icon gn-icon-download" onclick="showMyGeolocation();">Afisare locatie curenta pe harta</a>
+								</li>
+								<li>
+									<a class="gn-icon gn-icon-download" onclick="showPositionForFriends();" id="friendsLink">Afisare prieteni pe harta</a>
+								</li>
+								<li>
+									<a class="gn-icon gn-icon-cog">Grafice si statistici</a>
+									<ul class="gn-submenu">
+										<li><a class="gn-icon gn-icon-illustrator" onclick="afiseazaGraficPentruVitezaMedConsumDistantaPentruUserCurentDropdown();">Statistici utilizator curent</a></li>
+										<li><a class="gn-icon gn-icon-illustrator" onclick="afiseazaGraficPentruVitezaMedConsumDistantaPentruUserFriendsCurentDropdown();">Statistici utilizator curent si prieteni</a></li>
+										<li><a class="gn-icon gn-icon-illustrator" onclick="afiseazaSectoareSiPerioadeDropdown();">Statistici sectoare si perioade</a></li>
+<li><a class="gn-icon gn-icon-illustrator" onclick="afiseazaPuncteleDeDateSiEtcDropdown();">Statistici date culese</a></li>
+
+                    <li><a class="gn-icon gn-icon-illustrator" onclick="showTimeStatistics();">Statistici legate de timp</a></li>
+
+										<li><a class="gn-icon gn-icon-illustrator" onclick="addConglomerates();">Centre de aglomeratie</a></li>
+                    <li><a class="gn-icon gn-icon-illustrator" onclick="addConglomeratesWithTime();">Centre de aglomeratie(timp)</a></li>
+
+										<li><a class="gn-icon gn-icon-photoshop" onclick="showConsumeStatistics();">Statistici referitoare la consum</a></li>
+									</ul>
+								</li>
+								<li><a class="gn-icon gn-icon-help" onclick="showUserDetalies();">Detalii utilizator</a></li>
+
+								<li>
+									<a class="gn-icon gn-icon-archive" onclick="getAllTravels();">Calatoriile mele</a>
+									
+								</li>
+                <li>
+                  <a class="gn-icon gn-icon-archive" onclick="getAllFavs();">Arata locatii favorite</a>
+                  
+                </li>
+								<li><a class="gn-icon gn-icon-videos" onclick="removeAll();">Sterge toate datele de pe harta</a></li>
+							</ul>
+						</div><!-- /gn-scroller -->
+					</nav>
+				</li>
+				<li><a href="">Meniu principal</a></li> 
+				<li><a class="codrops-icon codrops-icon-prev"  onclick="facebookLogout();"><span>Logout</span></a></li>
+				<!--<li><a class="codrops-icon codrops-icon-drop" href="http://tympanus.net/codrops/?p=16030"><span>Back to the Codrops Article</span></a></li>-->
+			</ul>
+			<header>
+				<span id="map" style="width: 860px; height: 500px"></span>
+				
+			</header>
+			
+			
+		</div><!-- /container -->
+		<script src="js/classie.js"></script>
+		<script src="js/gnmenu.js"></script>
+		<script>
+			new gnMenu( document.getElementById( 'gn-menu' ) );
+		</script>
+	
+	
+	<script>
+		var i = 0;
+		var map = L.map('map').setView([44.434933, 26.047589], 13);
+
+
+		var waypoints = [];
+
+		L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+}).addTo(map);
+
+var punctos = new Array();
+
+var control = L.Routing.control({
+		plan: L.Routing.plan(waypoints, {
+			createMarker: function(i, wp) {
+				return L.marker(wp.latLng, {
+					draggable: true
+				});
+			},
+			geocoder: L.Control.Geocoder.nominatim(),
+			routeWhileDragging: true
+		}),
+		routeWhileDragging: true,
+		routeDragTimeout: 250,
+		showAlternatives: false,
+		altLineOptions: {
+			styles: [
+				{color: 'black', opacity: 0.15, weight: 9},
+				{color: 'white', opacity: 0.8, weight: 6},
+				{color: 'blue', opacity: 0.5, weight: 2}
+			]
+		}
+	})
+	.addTo(map)
+	.on('routingerror', function() {
+		try {
+			map.getCenter();
+		} catch (e) {
+			map.fitBounds(L.latLngBounds(waypoints));
+		}
+	});
+
+function button(label, container) {
+    var btn = L.DomUtil.create('button', '', container);
+    btn.setAttribute('type', 'button');
+    btn.innerHTML = label;
+    return btn;
+}
+
+function createButton(label, container) {
+    var btn = L.DomUtil.create('button', '', container);
+    btn.setAttribute('type', 'button');
+    btn.innerHTML = label;
+    return btn;
+}
+
+
+
+map.on('click', function(e) {
+    var container = L.DomUtil.create('div'),
+        startBtn = button('Start from this location', container),
+        destBtn = button('Go to this location', container);
+
+    L.DomEvent.on(startBtn, 'click', function() {
+        control.spliceWaypoints(0, 1, e.latlng);
+        map.closePopup();
+    });
+
+    L.DomEvent.on(destBtn, 'click', function() {
+        control.spliceWaypoints(control.getWaypoints().length - 1, 1, e.latlng);
+        map.closePopup();
+    });
+
+    L.popup()
+        .setContent(container)
+        .setLatLng(e.latlng)
+        .openOn(map);
+});
+
+
+function parseURLParams(url) {
+    var queryStart = url.indexOf("?") + 1,
+        queryEnd   = url.indexOf("#") + 1 || url.length + 1,
+        query = url.slice(queryStart, queryEnd - 1),
+        pairs = query.replace(/\+/g, " ").split("&"),
+        parms = {}, i, n, v, nv;
+
+    if (query === url || query === "") {
+        return;
+    }
+
+    for (i = 0; i < pairs.length; i++) {
+        nv = pairs[i].split("=");
+        n = decodeURIComponent(nv[0]);
+        v = decodeURIComponent(nv[1]);
+
+        if (!parms.hasOwnProperty(n)) {
+            parms[n] = [];
+        }
+
+        parms[n].push(nv.length === 2 ? v : null);
+    }
+    return parms;
+}
+
+		function showMyGeolocation(){
+  			if (navigator.geolocation) {
+        			navigator.geolocation.getCurrentPosition(showPosition);
+   				} else {
+        			  
+    		}
+		}
+
+		function onPopupOpen() {
+
+    var tempMarker = this;
+
+    //var tempMarkerGeoJSON = this.toGeoJSON();
+
+    //var lID = tempMarker._leaflet_id; // Getting Leaflet ID of this marker
+
+    // To remove marker on click of delete
+    $(".marker-delete-button:visible").click(function () {
+        map.removeLayer(tempMarker);
+    });
+}
+
+
+
+		function showPosition(position) {
+    		console.log("Latitude: " + position.coords.latitude +
+    		"<br>Longitude: " + position.coords.longitude);
+    		var xx = parseURLParams(location.href)
+    		L.marker([position.coords.latitude,position.coords.longitude]).addTo(map)
+    		.bindPopup('<b>Locatia curenta a utilizatorului ' +  xx.username + '</b><br><input type=\'button\' value=\'Delete this marker\' class=\'marker-delete-button\'/>')
+    		.openPopup().on("popupopen", onPopupOpen);;
+
+    		control.spliceWaypoints(0, 1, L.latLng(position.coords.latitude,position.coords.longitude));
+
+		}
+
+
+var favIcon = L.icon({
+    iconUrl: 'resources/fav.jpg',
+
+    iconSize:     [30, 30], // size of the icon
+    shadowSize:   [50, 64], // size of the shadow
+    iconAnchor:   [22, 94], // point of the icon which will correspond to marker's location
+    shadowAnchor: [4, 62],  // the same for the shadow
+    popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
+});
+
+
+var friendIcon = L.icon({
+    iconUrl: 'resources/1400.jpg',
+
+    iconSize:     [30, 30], // size of the icon
+    shadowSize:   [50, 64], // size of the shadow
+    iconAnchor:   [22, 94], // point of the icon which will correspond to marker's location
+    shadowAnchor: [4, 62],  // the same for the shadow
+    popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
+});
+
+var markersForFriends = new Array();
+
+		function showPositionForFriends(){
+			var xx = parseURLParams(location.href);
+
+			$.ajax({url: "http://localhost:8080/getAllFriendsLocation?username=" + xx.username + "&token="+xx.token,
+  		type: 'GET', 
+  		headers: {
+  			'Access-Control-Allow-Origin':'*'
+  		},
+  		contentType:'application/json',
+  		success: function(result){
+        	
+        	for(i=0;i<result.length;i++){
+        		var LamMarker = L.marker([result[i].latitude,result[i].longitude],{icon: friendIcon})
+    				.bindPopup('<b>Ultima locatia a lui ' +  result[i].user_id + '</b><br><input type=\'button\' value=\'Delete this marker\' class=\'marker-delete-button\'/>')
+    				.on("popupopen", onPopupOpen);
+    			markersForFriends.push(LamMarker);
+    			map.addLayer(markersForFriends[i]);
+        	}
+        		
+    	}});
+
+		$('#friendsLink').text("Sterge prieteni pe harta");
+		$('#friendsLink').attr("onclick","deleteMarkersForFriends()");
+		}
+
+function deleteMarkersForFriends(){
+	for(i=0;i<markersForFriends.length;i++) {
+    map.removeLayer(markersForFriends[i]);
+    }  
+
+    $('#friendsLink').text("Afisare prieteni pe harta");
+		$('#friendsLink').attr("onclick","showPositionForFriends()");
+}
+
+
+
+function showLocation2(position) {
+            var latitude = position.coords.latitude;
+            var longitude = position.coords.longitude;
+
+              var api_key = 'cd44c2d461fb91abc48362fdc93cf664';
+var api_url = "https://api.opencagedata.com/geocode/v1/json?query=" + latitude + "%2C" + longitude +"&pretty=1&key=cd44c2d461fb91abc48362fdc93cf664";
+var req = new XMLHttpRequest();
+req.onload = function() {
+    if (req.readyState == 4 && req.status == 200) {
+        var response = JSON.parse(this.responseText);
+        
+        var xx = parseURLParams(location.href);
+
+			$.ajax({url: "http://localhost:8080/getUserInformation?username=" + xx.username + "&token="+xx.token,
+  		type: 'GET', 
+  		headers: {
+  			'Access-Control-Allow-Origin':'*'
+  		},
+  		contentType:'application/json',
+  		success: function(result){
+        	
+	    
+	      	bootbox.alert("<h3>Nume utilizator: " + result.firstname + " " + result.lastname +"</h3><h4>Credentiale logare: " + result.username + "</h4><h4>Numar de telefon: "+result.phone + "</h4><h4> Locatia curenta: " + response.results[0].formatted+"</h4", function() {});
+	      
+        		
+    	}});
+
+
+
+
+
+
+
+    }
+};
+req.open("GET", api_url, true);
+req.send();
+
+
+
+
+
+
+         }
+function getLocation2(){
+
+            if(navigator.geolocation){
+               // timeout at 60000 milliseconds (60 seconds)
+               navigator.geolocation.getCurrentPosition(showLocation2);
+            }
+            
+            else{
+               alert("Sorry, browser does not support geolocation!");
+            }
+         }
+
+
+
+
+		function showUserDetalies(){
+			getLocation2();
+
+		}
+
+
+
+window.fbAsyncInit = function() {
+                FB.init({
+                appId: '925790694200024',
+                status: true,
+                cookie: true,
+                xfbml: true
+            });
+        };
+
+        // Load the SDK asynchronously
+        (function(d){
+        var js, id = 'facebook-jssdk', ref = d.getElementsByTagName('script')[0];
+        if (d.getElementById(id)) {return;}
+        js = d.createElement('script'); js.id = id; js.async = true;
+        js.src = "//connect.facebook.net/en_US/all.js";
+        ref.parentNode.insertBefore(js, ref);
+}(document));
+
+		
+		
+/*
+		(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_GB/sdk.js#xfbml=1&version=v2.6&appId=925790694200024";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));
+*/
+
+
+function statusChangeCallback(response) {
+    console.log('statusChangeCallback');
+    console.log(response);
+    // The response object is returned with a status field that lets the
+    // app know the current login status of the person.
+    // Full docs on the response object can be found in the documentation
+    // for FB.getLoginStatus().
+    if (response.status === 'connected') {
+FB.logout(function(response) {
+  // user is now logged out
+  window.location.href = "login.html";
+});
+    } else {
+window.location.href = "login.html";
+    }
+  }
+
+
+
+function facebookLogout(){
+    FB.getLoginStatus(function(response) {
+      statusChangeCallback(response);
+    });    
+    }
+
+function getAllJourneys(){
+	var xx = parseURLParams(location.href);
+	$.ajax({url: "http://localhost:8080/getAllUserJourneys?username=" + xx.username + "&token="+xx.token,
+  		type: 'GET', 
+  		headers: {
+  			'Access-Control-Allow-Origin':'*'
+  		},
+  		contentType:'application/json',
+  		success: function(result){
+  			var string = "<div class=\"panel panel-primary\"><div class=\"panel-heading\">Toate calatoriile dumneavoastra</div><table class=\"table\"><thead><tr><th>#</th><th>Numele calatoriei</th></tr><tbody>";
+  			for(var i=0;i<result.length;i++){
+  				string += "<tr><h4><td>" + result[i].id + "</td><td>"+result[i].journeyName+ "</h4></td></tr>";
+  			}
+  			string+="</tbody></table></div>";
+  			bootbox.alert(string,function(){});
+  		}});
+}
+
+function getAllJourneysData(){
+	var xx = parseURLParams(location.href);
+	$.ajax({url: "http://localhost:8080/getAllUserJourneyData?username=" + xx.username + "&token="+xx.token,
+  		type: 'GET', 
+  		headers: {
+  			'Access-Control-Allow-Origin':'*'
+  		},
+  		contentType:'application/json',
+  		success: function(result){
+  			var string = "<div class=\"panel panel-primary\"><div class=\"panel-heading\">Toate punctele dumneavoastra</div><table class=\"table\"><thead><tr><th>#</th><th>Latitude</th><th>Longitude</th><th>Viteza</th><th>Timp</th></tr><thead><tbody>";
+  			for(var i=0;i<result.length;i++){
+  				var date = new Date(result[i].timestamp);
+  				string += "<tr><h4><td>" + result[i].id + "</td><td>"+result[i].latitude+ "</td><td>"+result[i].longitude+"</td><td>"+result[i].speed+" km/h</td><td>"+date.toString().slice(0, 24)+"</h4></td></tr>"
+  			}
+  			string+="</tbody></table></div>";
+  			bootbox.alert(string,function(){});
+  		}});
+}
+
+function getAllJourneyAndJourneyData(){
+	var xx = parseURLParams(location.href);
+	$.ajax({url: "http://localhost:8080/getAllUserJourneyWithJourneyData?username=" + xx.username + "&token="+xx.token,
+  		type: 'GET', 
+  		headers: {
+  			'Access-Control-Allow-Origin':'*'
+  		},
+  		contentType:'application/json',
+  		success: function(result){
+  			console.log(result);
+  			console.log(JSON.stringify(result));
+  			for(var i=0;i<result.length;i++){
+  				console.log(result[i]);
+  			}
+  		}});
+}
+
+
+
+
+
+
+	function afiseazaGraficPentruVitezaMedConsumDistantaPentruUserCurentDropdown(){
+			//setInterval(2000,afiseazaGraficPentruVitezaMedConsumDistantaPentruUserCurent());
+		
+			bootbox.dialog({
+                
+                message: '<div id="chartContainer" style="height: 350px; width: 400px;"></div>' +
+                	'<div class="row">  ' +
+                    '<div class="col-md-12"> ' +
+                    '<form role="form"><h5>Tipuri de grafice:</h5>'+
+                    '<div class="btn-group" id="filterDay1" data-toggle="buttons">'+
+    '<label class="radio-inline">'+
+      '<input type="radio" value="stepArea" name="optradio1">Step Area Chart'+
+    '</label>' +
+    '<label class="radio-inline">' +
+      '<input type="radio" value="column" name="optradio1">Column Chart' +
+    '</label>' +
+    '<label class="radio-inline">' +
+      '<input type="radio" value="area" name="optradio1">Area Chart' +
+    '</label></div><h5>Tipuri de statistici</h5>'+
+    '<div class="btn-group" id="filterDay2" data-toggle="buttons">'+
+    '<label class="radio-inline">'+
+      '<input type="radio" value="viteza_medie" name="optradio2">Viteza medie'+
+    '</label>' +
+    '<label class="radio-inline">' +
+      '<input type="radio" value="consum" name="optradio2">Consum' +
+    '</label>' +
+    '<label class="radio-inline">' +
+      '<input type="radio" value="distanta" name="optradio2">Distanta' +
+    '</label>'+
+  '</div></form><br>'+
+'<button type="button" class="btn btn-primary" onclick="afiseazaGraficPentruVitezaMedConsumDistantaPentruUserCurent();">Deseneaza grafic</button>'+
+                     '</div></div>',
+    
+            }
+);
+
+		
+	}
+
+
+
+
+
+  	function afiseazaGraficPentruVitezaMedConsumDistantaPentruUserCurent(){
+	var xx = parseURLParams(location.href);
+
+	var title;
+
+	var tip_grafic = $('#filterDay1 input:radio:checked').val();
+
+	
+	if(tip_grafic === undefined)
+		tip_grafic = "step";
+
+	var y_value = $('#filterDay2 input:radio:checked').val();
+	
+	if(y_value === undefined)
+		y_value = "distanta";
+
+	console.log(tip_grafic);
+	console.log(y_value);
+
+	if(y_value == 'distanta')
+		title = 'Distanta(km) in functie de calatorie a utilizatorului ' + xx.username;
+	if(y_value == 'consum')
+		title = 'Consumul(L) in functie de calatorie a utilizatorului ' + xx.username;
+	if(y_value == 'viteza_medie')
+		title = 'Viteza medie(km/h) in functie de calatorie a utilizatorului ' + xx.username;
+
+	
+	$.ajax({url: "http://localhost:8080/getVmDCByJ?username=" + xx.username + "&token="+xx.token + "&yValue=" + y_value,
+  		type: 'GET', 
+  		headers: {
+  			'Access-Control-Allow-Origin':'*'
+  		},
+  		contentType:'application/json',
+  		success: function(result){
+  			console.log(result);
+  			
+  			var dataArray = new Array();
+  			
+  			for(var i=0;i<result.keysAndValues.length;i++){
+  				var o = new Object();
+  				o.x = i;
+  				o.y = result.keysAndValues[i].value;
+  				o.label = result.keysAndValues[i].key;
+  				dataArray.push(o);
+  			}
+
+  			var chart = new CanvasJS.Chart("chartContainer",
+    {
+      title:{
+        text: title
+      },
+      data: [
+
+      {
+      	type: tip_grafic,
+        dataPoints: dataArray
+      }
+      ]
+    });
+
+  			chart.render();
+  		}
+  	});}
+
+
+
+
+
+
+
+
+
+
+  	function afiseazaGraficPentruVitezaMedConsumDistantaPentruUserFriendsCurentDropdown(){
+			//setInterval(2000,afiseazaGraficPentruVitezaMedConsumDistantaPentruUserCurent());
+		
+			bootbox.dialog({
+                
+                message: '<div id="chartContainer" style="height: 350px; width: 400px;"></div>' +
+                	'<div class="row">  ' +
+                    '<div class="col-md-12"> ' +
+                    '<form role="form"><h5>Tipuri de grafice:</h5>'+
+                    '<div class="btn-group" id="filterDay1" data-toggle="buttons">'+
+    '<label class="radio-inline">'+
+      '<input type="radio" value="stepArea" name="optradio1">Step Area Chart'+
+    '</label>' +
+    '<label class="radio-inline">' +
+      '<input type="radio" value="column" name="optradio1">Column Chart' +
+    '</label>' +
+    '<label class="radio-inline">' +
+      '<input type="radio" value="area" name="optradio1">Area Chart' +
+    '</label></div><h5>Tipuri de statistici</h5>'+
+    '<div class="btn-group" id="filterDay2" data-toggle="buttons">'+
+    '<label class="radio-inline">'+
+      '<input type="radio" value="viteza_medie" name="optradio2">Viteza medie'+
+    '</label>' +
+    '<label class="radio-inline">' +
+      '<input type="radio" value="consum" name="optradio2">Consum' +
+    '</label>' +
+    '<label class="radio-inline">' +
+      '<input type="radio" value="distanta" name="optradio2">Distanta' +
+    '</label>'+
+  '</div></form><br>'+
+'<button type="button" class="btn btn-primary" onclick="afiseazaGraficPentruVitezaMedConsumDistantaPentruUserCurent2();">Deseneaza grafic</button>'+
+                     '</div></div>',
+    
+            }
+);
+
+		
+	}
+
+
+
+
+
+  	function afiseazaGraficPentruVitezaMedConsumDistantaPentruUserCurent2(){
+	var xx = parseURLParams(location.href);
+
+	var title;
+
+	var tip_grafic = $('#filterDay1 input:radio:checked').val();
+
+	
+	if(tip_grafic === undefined)
+		tip_grafic = "step";
+
+	var y_value = $('#filterDay2 input:radio:checked').val();
+	
+	if(y_value === undefined)
+		y_value = "distanta";
+
+	console.log(tip_grafic);
+	console.log(y_value);
+
+	if(y_value == 'distanta')
+		title = 'Distanta(km) medie a utilizatorului '+ xx.username +' si prietenilor sai';
+	if(y_value == 'consum')
+		title = 'Consumul(L) medie a utilizatorului '+ xx.username + ' si prietenilor sai' ;
+	if(y_value == 'viteza_medie')
+		title = 'Viteza medie(km/h)  a utilizatorului ' + xx.username + ' si prietenilor sai';
+
+	
+	$.ajax({url: "http://localhost:8080/getVmDCByUF?username=" + xx.username + "&token="+xx.token + "&yValue=" + y_value,
+  		type: 'GET', 
+  		headers: {
+  			'Access-Control-Allow-Origin':'*'
+  		},
+  		contentType:'application/json',
+  		success: function(result){
+  			console.log(result);
+  			
+  			var dataArray = new Array();
+  			
+  			for(var i=0;i<result.keysAndValues.length;i++){
+  				var o = new Object();
+  				o.x = i;
+  				o.y = result.keysAndValues[i].value;
+  				o.label = result.keysAndValues[i].key;
+  				dataArray.push(o);
+  			}
+
+  			var chart = new CanvasJS.Chart("chartContainer",
+    {
+      title:{
+        text: title
+      },
+      data: [
+
+      {
+      	type: tip_grafic,
+        dataPoints: dataArray
+      }
+      ]
+    });
+
+  			chart.render();
+  		}
+  	});}
+
+
+  	
+
+
+
+
+  	function afiseazaSectoareSiPerioadeDropdown(){
+			//setInterval(2000,afiseazaGraficPentruVitezaMedConsumDistantaPentruUserCurent());
+		
+			bootbox.dialog({
+                
+                message: '<div id="chartContainer" style="height: 350px; width: 400px;"></div>' +
+                	'<div class="row">  ' +
+                    '<div class="col-md-12"> ' +
+                    '<form role="form"><h5>Tipuri de grafice:</h5>'+
+                    '<div class="btn-group" id="filterDay1" data-toggle="buttons">'+
+    '<label class="radio-inline">'+
+      '<input type="radio" value="pie" name="optradio1">Pie Chart'+
+    '</label>' +
+    '<label class="radio-inline">' +
+      '<input type="radio" value="doughnut" name="optradio1">Doughnut Chart' +
+    '</label></div><h5>Tipuri de statistici</h5>'+
+    '<div class="btn-group" id="filterDay2" data-toggle="buttons">'+
+    '<label class="radio-inline">'+
+      '<input type="radio" value="sectoare" name="optradio2">Sectoare'+
+    '</label>' +
+    '<label class="radio-inline">' +
+      '<input type="radio" value="perioade" name="optradio2">Perioade' +
+    '</label></div><h5>Tipuri de date</h5>'+
+    '<div class="btn-group" id="filterDay3" data-toggle="buttons">'+
+    '<label class="radio-inline">'+
+      '<input type="radio" value="me" name="optradio3">Datele mele'+
+    '</label>' +
+    '<label class="radio-inline">' +
+      '<input type="radio" value="friends" name="optradio3">Toate datele' +
+  '</div></form><br>'+
+'<button type="button" class="btn btn-primary" onclick="afiseazaSectoareSiPerioade();">Deseneaza grafic</button>'+
+                     '</div></div>',
+    
+            }
+);
+
+		
+	}
+
+
+
+
+
+  	function afiseazaSectoareSiPerioade(){
+	var xx = parseURLParams(location.href);
+
+	var title;
+
+	var tip_grafic = $('#filterDay1 input:radio:checked').val();
+
+	
+	if(tip_grafic === undefined)
+		tip_grafic = "step";
+
+	var y_value = $('#filterDay2 input:radio:checked').val();
+
+	if(y_value === undefined)
+		y_value = "distanta";
+
+	var x_value = $('#filterDay3 input:radio:checked').val();
+
+	if(x_value === undefined)
+		x_value = "me";
+	
+
+
+	if(y_value == 'sectoare')
+		title = 'Apartenenta punctelor de date la sectoare a utilizatorului ' + xx.username;
+	if(y_value == 'perioade')
+		title = 'Apartenenta punctelor de date la perioade a utilizatorului ' + xx.username;
+	if(x_value == 'me')
+		title += '';
+	if(x_value == 'friends')
+		title += ' si a prietenilor sai';
+
+	
+	$.ajax({url: "http://localhost:8080/getPartBySD?username=" + xx.username + "&token="+xx.token + "&xValue=" + x_value +"&yValue=" + y_value,
+  		type: 'GET', 
+  		headers: {
+  			'Access-Control-Allow-Origin':'*'
+  		},
+  		contentType:'application/json',
+  		success: function(result){
+  			console.log(result);
+  			
+  			var dataArray = new Array();
+  			
+  			for(var i=0;i<result.keysAndValues.length;i++){
+  				var o = new Object();
+  				o.x = i;
+  				o.y = result.keysAndValues[i].value;
+  				o.label = result.keysAndValues[i].key;
+  				dataArray.push(o);
+  			}
+
+  			var chart = new CanvasJS.Chart("chartContainer",
+    {
+      title:{
+        text: title
+      },
+      data: [
+
+      {
+      	type: tip_grafic,
+        dataPoints: dataArray
+      }
+      ]
+    });
+
+  			chart.render();
+  		}
+  	});}
+
+
+
+  	function afiseazaPuncteleDeDateSiEtcDropdown(){
+			//setInterval(2000,afiseazaGraficPentruVitezaMedConsumDistantaPentruUserCurent());
+		
+			bootbox.dialog({
+                
+                message: '<div id="chartContainer" style="height: 350px; width: 400px;"></div>' +
+                	'<div class="row">  ' +
+                    '<div class="col-md-12"> ' +
+                    '<form role="form"><h5>Tipuri de grafice:</h5>'+
+                    '<div class="btn-group" id="filterDay1" data-toggle="buttons">'+
+    '<label class="radio-inline">'+
+      '<input type="radio" value="column" name="optradio1">Column Chart'+
+    '</label>' +
+    '<label class="radio-inline">' +
+      '<input type="radio" value="area" name="optradio1">Area Chart' +
+    '</label></div><h5>Tipuri de statistici</h5>'+
+    '<div class="btn-group" id="filterDay2" data-toggle="buttons">'+
+    '<label class="radio-inline">'+
+      '<input type="radio" value="journey_data" name="optradio2">Numar de puncte de date'+
+    '</label>' +
+    '<label class="radio-inline">' +
+      '<input type="radio" value="time" name="optradio2">Timp petrecut' +
+    '</label></div><h5>In functie de </h5>'+
+    '<div class="btn-group" id="filterDay3" data-toggle="buttons">'+
+    '<label class="radio-inline">'+
+      '<input type="radio" value="me" name="optradio3">Doar calatoriile mele'+
+    '</label>' +
+    '<label class="radio-inline">' +
+      '<input type="radio" value="friends" name="optradio3">Eu si prietenii mei' +
+  '</div></form><br>'+
+'<button type="button" class="btn btn-primary" onclick="afiseazaPuncteleDeDateSiEtc();">Deseneaza grafic</button>'+
+                     '</div></div>',
+    
+            }
+);
+
+		
+	}
+
+
+
+
+
+  	function afiseazaPuncteleDeDateSiEtc(){
+	var xx = parseURLParams(location.href);
+
+	var title;
+
+	var tip_grafic = $('#filterDay1 input:radio:checked').val();
+
+	
+	if(tip_grafic === undefined)
+		tip_grafic = "step";
+
+	var y_value = $('#filterDay2 input:radio:checked').val();
+
+	if(y_value === undefined)
+		y_value = "distanta";
+
+	var x_value = $('#filterDay3 input:radio:checked').val();
+
+	if(x_value === undefined)
+		x_value = "me";
+	
+
+
+	if(y_value == 'journey_data')
+		title = 'Numarul de punctelor de date  a utilizatorului ' + xx.username;
+	if(y_value == 'time')
+		title = 'Timpul(h) utilizatorului ' + xx.username;
+	if(x_value == 'me')
+		title += ' in functie de calatorie';
+	if(x_value == 'friends')
+		title += ' si al prietenilor sai';
+
+	
+	$.ajax({url: "http://localhost:8080/getTechG?username=" + xx.username + "&token="+xx.token + "&xValue=" + x_value +"&yValue=" + y_value,
+  		type: 'GET', 
+  		headers: {
+  			'Access-Control-Allow-Origin':'*'
+  		},
+  		contentType:'application/json',
+  		success: function(result){
+  			console.log(result);
+  			
+  			var dataArray = new Array();
+  			
+  			for(var i=0;i<result.keysAndValues.length;i++){
+  				var o = new Object();
+  				o.x = i;
+  				o.y = result.keysAndValues[i].value;
+  				o.label = result.keysAndValues[i].key;
+  				dataArray.push(o);
+  			}
+
+  			var chart = new CanvasJS.Chart("chartContainer",
+    {
+      title:{
+        text: title
+      },
+      data: [
+
+      {
+      	type: tip_grafic,
+        dataPoints: dataArray
+      }
+      ]
+    });
+
+  			chart.render();
+  		}
+  	});}
+
+var arsss = new Array();
+
+
+ function getAllTravels(){
+ 	var xx = parseURLParams(location.href);
+	$.ajax({url: "http://localhost:8080/getAllJourneyDataByTravel?username=" + xx.username + "&token="+xx.token ,
+  		type: 'GET', 
+  		headers: {
+  			'Access-Control-Allow-Origin':'*'
+  		},
+  		contentType:'application/json',
+  		success: function(result){
+  			var colors= ['aqua', 'black', 'blue', 'fuchsia', 'gray', 'green', 
+'lime', 'maroon', 'navy', 'olive', 'orange', 'purple', 'red', 
+'silver', 'teal', 'white', 'yellow'];
+  			console.log(result);
+  			for(var i=0;i<result.length;i++){
+  				var ars = new Array();
+  				for(var j=0;j<result[i].length;j++){
+  					var p  = new L.LatLng(result[i][j].latitude, result[i][j].longitude);
+  					ars.push(p);
+  					var marker = L.marker([result[i][j].latitude,result[i][j].longitude]).addTo(map);
+  					marker.bindPopup('<div class="panel panel-default"><div class="panel-body"><h6>Latitude: ' + result[i][j].latitude+'<br>' + 
+  						'Longitude: ' + result[i][j].longitude + '<br>Viteza:' + result[i][j].speed + ' km/h</h6></div></div>');
+  					arsss.push(marker);
+  				}
+
+  				var firstpolyline = new L.Polyline(ars, {
+color: colors[i%colors.length],
+weight: 3,
+opacity: 0.5,
+smoothFactor: 1
+
+});
+firstpolyline.addTo(map);
+  				punctos.push(firstpolyline);
+  			}
+  		}
+  	});
+
+ }
+var cong = new Array();
+var favs = new Array();
+
+function removeAll(){
+	for(var i=0;i<punctos.length;i++)
+		map.removeLayer(punctos[i]);
+	for(var i=0;i<arsss.length;i++)
+		map.removeLayer(arsss[i]);
+  for(var i=0;i<cong.length;i++)
+    map.removeLayer(cong[i]);
+  for(var i=0;i<favs.length;i++)
+    map.removeLayer(favs[i]);
+  arsss = [];
+  punctos = [];
+  cong = [];
+  favs = [];
+}
+
+
+
+function addConglomerates(){
+  var xx = parseURLParams(location.href);
+  $.ajax({url: "http://localhost:8080/getCargoCenters2D?username=" + xx.username + "&token="+xx.token ,
+      type: 'GET', 
+      headers: {
+        'Access-Control-Allow-Origin':'*'
+      },
+      contentType:'application/json',
+      success: function(result){
+        for(var i=0;i<result.length;i++){
+          var circle = L.circle([result[i].latitude, result[i].longitude], 200, {
+    color: 'red',
+    fillColor: '#f03',
+    fillOpacity: 0.3
+}).addTo(map);
+          cong.push(circle);
+        }
+      }
+    });
+    
+}
+
+
+function addConglomeratesWithTime(){
+  bootbox.prompt("Enter a value between 0-24 for hour for conglomerates", function(result) {                
+  if (result === null) {                                                                           
+  } else {
+      if(Number(result) === result && result % 1 === 0)
+        return;
+      var xx = parseURLParams(location.href);
+  $.ajax({url: "http://localhost:8080/getCargoCentersByTime?username=" + xx.username + "&token="+xx.token + "&hour=" + result,
+      type: 'GET', 
+      headers: {
+        'Access-Control-Allow-Origin':'*'
+      },
+      contentType:'application/json',
+      success: function(result){
+        for(var i=0;i<result.length;i++){
+          var circle = L.circle([result[i].latitude, result[i].longitude], 200, {
+    color: 'red',
+    fillColor: '#f03',
+    fillOpacity: 0.4
+}).addTo(map);
+          cong.push(circle);
+        }
+      }
+    });                       
+  }
+});
+}
+
+
+function showConsumeStatistics() {
+  bootbox.alert("<div id=\"chartContainer\" style=\"height: 350px; width: 400px;\"></div>",function() {});
+
+var xx = parseURLParams(location.href);
+
+  $.ajax({url: "http://localhost:8080/getConsumeStatistics?username=" + xx.username + "&token="+xx.token,
+      type: 'GET', 
+      headers: {
+        'Access-Control-Allow-Origin':'*'
+      },
+      contentType:'application/json',
+      success: function(result){
+        console.log(result);
+        
+        var dataArray = new Array();
+        
+        for(var i=0;i<result.keysAndValues.length;i+=3){
+          var o = new Object();
+          o.x =result.keysAndValues[i].key;
+          o.y = -result.keysAndValues[i].value;
+          //o.label = 
+          if(o.x <= 100)
+            dataArray.push(o);
+        }
+
+    var chart = new CanvasJS.Chart("chartContainer",
+    {
+      title:{
+        text: "Consumul calculat in functie de viteza"
+      },
+      animationEnabled: true,
+      axisX: {
+        title:"Viteza masinii(km/h)",
+        titleFontFamily: "arial"
+
+      },
+      axisY:{
+        title: "Consumul masinii(L/100Km)",
+        titleFontFamily: "arial",
+      },
+      data: [
+      {
+        type: "scatter",
+        dataPoints: dataArray
+      }
+      ]
+    });
+    chart.render();
+  }});
+}
+
+function showTimeStatistics() {
+  bootbox.alert("<div id=\"chartContainer\" style=\"height: 350px; width: 400px;\"></div>",function() {});
+
+var xx = parseURLParams(location.href);
+
+  $.ajax({url: "http://localhost:8080/getGraphTime?username=" + xx.username + "&token="+xx.token,
+      type: 'GET', 
+      headers: {
+        'Access-Control-Allow-Origin':'*'
+      },
+      contentType:'application/json',
+      success: function(result){
+        console.log(result);
+        
+        var dataArray = new Array();
+        
+        for(var i=0;i<result.keysAndValues.length;i++){
+          var o = new Object();
+          o.x = result.keysAndValues[i].value;
+          o.y = result.keysAndValues[i].key;
+          //o.label = ;
+          dataArray.push(o);
+        }
+
+    var chart = new CanvasJS.Chart("chartContainer",
+    {
+      title:{
+        text: "Cele mai aglomerate ore ale zilei"
+      },
+      animationEnabled: true,
+      axisX: {
+        title:"Orele zile",
+        titleFontFamily: "arial"
+
+      },
+      axisY:{
+        title: "Numarul de puncte de date colectate in jurul orei",
+        titleFontFamily: "arial",
+      },
+      data: [
+      {
+        type: "column",
+        dataPoints: dataArray
+      }
+      ]
+    });
+    chart.render();
+  }});
+}
+
+
+function getAllFavs(){
+  var xx = parseURLParams(location.href);
+  $.ajax({url: "http://localhost:8080/getAllUserFavorites?username=" + xx.username + "&token="+xx.token ,
+      type: 'GET', 
+      headers: {
+        'Access-Control-Allow-Origin':'*'
+      },
+      contentType:'application/json',
+      success: function(result){
+       
+        console.log(result);
+        for(var i=0;i<result.length;i++){
+ 
+            var marker = L.marker([result[i].latitude,result[i].longitude],{icon: favIcon}).addTo(map);
+            marker.bindPopup('<div class="panel panel-default"><div class="panel-body"><h6>Latitude: ' + result[i].latitude+'<br>' + 
+              'Longitude: ' + result[i].longitude + '<br>Timp:' + new Date(result[i].timestamp) + '<br>Description: '+result[i].description +'</h6></div></div>');
+               favs.push(marker);
+      }
+    }});
+}
+
+
+	</script>
+</body>
+</html>
